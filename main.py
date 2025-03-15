@@ -11,7 +11,8 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 logging.basicConfig(level=logging.INFO)
 
 intents = discord.Intents.default()
-intents.message_content = True
+if hasattr(intents, "message_content"):
+    intents.message_content = True
 
 client = discord.Client(intents=intents)
 
@@ -25,10 +26,10 @@ async def check_permissions(guild):
         return False
     return True
 
-def get_translation(text, src_lang='auto', dest_lang='en'):
+def get_translation(text, dest_lang='en'):
     if text in translations_cache:
         return translations_cache[text]
-    translated = translator.translate(text, src=src_lang, dest=dest_lang).text
+    translated = translator.translate(text, dest=dest_lang).text
     translations_cache[text] = translated
     return translated
 
@@ -39,9 +40,13 @@ async def translate_and_rename_channels(guild, src_lang, dest_lang):
                 if channel.type == discord.ChannelType.private:
                     continue
 
-                detected_lang = translator.detect(channel.name).lang
+                try:
+                    detected_lang = translator.detect(channel.name).lang
+                except:
+                    detected_lang = "auto"
+
                 if detected_lang != dest_lang:
-                    translated_name = get_translation(channel.name, src=detected_lang, dest=dest_lang)
+                    translated_name = get_translation(channel.name, dest_lang)
                     await channel.edit(name=translated_name)
                     logging.info(f"Channel {channel.name} translated to {translated_name}")
                     await asyncio.sleep(1)
@@ -54,7 +59,7 @@ async def translate_and_rename_roles(guild, src_lang, dest_lang):
             try:
                 detected_lang = translator.detect(role.name).lang
                 if detected_lang != dest_lang:
-                    translated_name = get_translation(role.name, src=detected_lang, dest=dest_lang)
+                    translated_name = get_translation(role.name, dest_lang)
                     await role.edit(name=translated_name)
                     logging.info(f"Role {role.name} translated to {translated_name}")
                     await asyncio.sleep(1)
@@ -77,12 +82,12 @@ async def preview_translation(guild, message, src_lang, dest_lang):
     preview = "Channels to be translated:\n"
     for channel in guild.channels:
         if isinstance(channel, discord.TextChannel) or isinstance(channel, discord.VoiceChannel):
-            preview += f"{channel.name} -> {get_translation(channel.name, src=src_lang, dest=dest_lang)}\n"
+            preview += f"{channel.name} -> {get_translation(channel.name, dest_lang)}\n"
     
     preview += "\nRoles to be translated:\n"
     for role in guild.roles:
         if role.name != "@everyone":
-            preview += f"{role.name} -> {get_translation(role.name, src=src_lang, dest=dest_lang)}\n"
+            preview += f"{role.name} -> {get_translation(role.name, dest_lang)}\n"
     
     await message.channel.send(preview)
 
