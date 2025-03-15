@@ -1,4 +1,4 @@
-````markdown
+
 # Translate Bot for Discord
 
 This Discord bot automatically translates the names of text and voice channels, as well as roles, into a chosen language.
@@ -20,8 +20,8 @@ This Discord bot automatically translates the names of text and voice channels, 
    ```bash
    git clone https://github.com/your-username/translate-bot.git
    cd translate-bot
-   ```
-````
+
+
 
 2. Create a virtual environment:
 
@@ -45,7 +45,7 @@ This Discord bot automatically translates the names of text and voice channels, 
 5. Run the bot:
    ```bash
    python bot.py
-   ```
+
 
 ## Contributing
 
